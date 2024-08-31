@@ -1,31 +1,44 @@
-import { Component } from '@angular/core';
+import { Component} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+const httpOptions = {
+  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+};
+
+const BACKEND_URL = 'http://localhost:8080';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [FormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrl: './login.component.css'
 })
 export class LoginComponent {
   email = '';
   password = '';
-  users = [
-    { email: 'user1@gmail.com', password: 'pw1' },
-    { email: 'user2@gmail.com', password: 'pw2' },
-    { email: 'user3@gmail.com', password: 'pw3' }
-  ];
-
-  constructor(private router: Router) {}
-
-  login() {
-    const user = this.users.find(u => u.email === this.email && u.password === this.password);
-    if (user) {
-      this.router.navigate(['/account']);  
-    } else {
-      alert('Invalid account!');  
-    }
+  constructor(private router: Router, private httpClient: HttpClient) {}
+  submit(){
+    let user = {username:this.email, pwd: this.password};
+    this.httpClient.post(BACKEND_URL + '/login', user, httpOptions)
+    .subscribe((data: any) => {
+      console.log("Response from server:", data);
+      alert("posting: " + JSON.stringify(user));
+      alert("postRes: " + JSON.stringify(data));
+      if (data.ok) {
+        sessionStorage.setItem('userid', data.userid.toString());
+        sessionStorage.setItem('userlogin', data.ok.toString());
+        sessionStorage.setItem('username', data.username);
+        sessionStorage.setItem('userbirthdate', data.userbirthdate);
+        sessionStorage.setItem('userage', data.userage.toString());
+        this.router.navigateByUrl("/account");
+      }
+      else { alert("email or password incorrect");}
+    })
   }
 }
+
+
+
